@@ -21,6 +21,7 @@ indeed_api = IndeedClient(publisher = credentials.my_indeed_publisher_id)
 
 @app.route("/", methods=['GET', 'POST'])
 def FindJobs():
+
     return ""
 
 if __name__ == "__main__":
