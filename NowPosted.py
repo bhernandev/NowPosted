@@ -23,18 +23,19 @@ from apscheduler.triggers.interval import IntervalTrigger
 
 app = Flask(__name__)
 app.config.from_object(__name__)
-#app.run(use_reloader=False)
+
 
 #Creating the clients to interact with the APIs
 twilio_api = TwilioRestClient(credentials.my_twilio_account_sid, credentials.my_twilio_auth_token)
 indeed_api = IndeedClient(publisher = credentials.my_indeed_publisher_id)
 
-def print_date_time():
-    print("hello")
+def print_date_time(string, string2):
+    print(string)
+    print(string2)
 
 scheduler = BackgroundScheduler()
 scheduler.start()
-scheduler.add_job(func=print_date_time, trigger=IntervalTrigger(seconds=5), id='printing_job', name='Print date and time every five seconds', replace_existing=True)
+scheduler.add_job(func=print_date_time, trigger=IntervalTrigger(seconds=5), args={'string', 'string2'}, id='printing_job', name='Print date and time every five seconds', replace_existing=True)
 atexit.register(lambda: scheduler.shutdown())
 
 
