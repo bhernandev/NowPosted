@@ -20,10 +20,8 @@ import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-
 app = Flask(__name__)
 app.config.from_object(__name__)
-
 
 #Creating the clients to interact with the APIs
 twilio_api = TwilioRestClient(credentials.my_twilio_account_sid, credentials.my_twilio_auth_token)
@@ -34,7 +32,6 @@ def print_date_time(string, string2):
     print("first parameter " + string)
     #second string
     print("second parameter " + string2)
-    return None
 
 def FindJobs(user_number):
     # query_param = userInfo['users'][user_number]['query']
