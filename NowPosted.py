@@ -20,7 +20,7 @@ import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static/')
 app.config.from_object(__name__)
 
 #Creating the clients to interact with the APIs
@@ -32,6 +32,7 @@ def print_date_time(string, string2):
     print("first parameter " + string)
     #second string
     print("second parameter " + string2)
+    message_init = twilio_api.messages.create(to=credentials.my_phone_number, from_=credentials.my_twilio_number, body="Test")
 
 def FindJobs(user_number):
     # query_param = userInfo['users'][user_number]['query']
@@ -55,15 +56,14 @@ def FindJobs(user_number):
 
 scheduler = BackgroundScheduler()
 scheduler.start()
-scheduler.add_job(func=print_date_time, trigger=IntervalTrigger(seconds=5), args=['string1','string2'], id='printing_job', name='Print date and time every five seconds', replace_existing=True)
+scheduler.add_job(func=print_date_time, trigger=IntervalTrigger(seconds=180), args=['string1','string2'], id='printing_job', name='Print date and time every five seconds', replace_existing=True)
 atexit.register(lambda: scheduler.shutdown())
 
 @app.route("/", methods=['GET', 'POST'])
 def DeliverJobs():
     if request.method == 'GET':
         #return the website with the signup form
-        print("get request made")
-        return ""
+        return app.send_static_file('home.html')
     elif request.method == 'POST':
         #get form data from request object and place into a dict
         #attach to the json file http://stackoverflow.com/questions/23111625/how-to-add-a-key-value-to-json-data-retrieved-from-a-file-with-python
