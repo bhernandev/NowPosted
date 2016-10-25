@@ -12,15 +12,20 @@ h1{
   margin:0px;
 }
 
-p{
+p, form{
   font-family: 'Roboto', sans-serif;;
   font-size: 20px;
-  color: #FFFFFF;
+  color: #E0E0E0;
+}
+
+input{
+  padding:3px;
+  margin:7px;
 }
 
 #masthead{
   background-color: #232F3D;
-  color: #FFFFFF;
+  color: #E0E0E0;
   border-radius: 10px;
   padding:1.5% 15% 1.5% 15%;
   display: inline-block;
@@ -33,11 +38,11 @@ p{
 
 .description-text{
   background-color: #232F3D;
-  color: #FFFFFF;
+  color: #E0E0E0;
   border-radius: 10px;
   padding:1.5% 5% 1.5% 5%;
   display: inline-block;
-  text-align:left;
+  text-align:center;
   height:60%;
   margin: 0 auto;
   width: 65%;
