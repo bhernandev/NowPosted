@@ -1,0 +1,49 @@
+body{
+  background-color: #FCFCFC;
+}
+
+#container{
+  text-align:center;
+}
+
+h1{
+  font-family: 'Roboto',sans-serif;
+  font-size: 60px;
+  margin:0px;
+}
+
+p{
+  font-family: 'Roboto', sans-serif;;
+  font-size: 20px;
+  color: #FFFFFF;
+}
+
+#masthead{
+  background-color: #232F3D;
+  color: #FFFFFF;
+  border-radius: 10px;
+  padding:1.5% 15% 1.5% 15%;
+  display: inline-block;
+  text-align:center;
+  margin: 0 auto;
+  width: 45%;
+  margin-top: 2%;
+  margin-bottom:2%;
+}
+
+.description-text{
+  background-color: #232F3D;
+  color: #FFFFFF;
+  border-radius: 10px;
+  padding:1.5% 5% 1.5% 5%;
+  display: inline-block;
+  text-align:left;
+  height:60%;
+  margin: 0 auto;
+  width: 65%;
+}
+
+/*
+2B3169
+2A2A36
+*/
