@@ -27,12 +27,14 @@ app.config.from_object(__name__)
 twilio_api = TwilioRestClient(credentials.my_twilio_account_sid, credentials.my_twilio_auth_token)
 indeed_api = IndeedClient(publisher = credentials.my_indeed_publisher_id)
 
+name = ""
+query = ""
+
 def print_date_time(string, string2):
-    #first string
-    print("first parameter " + string)
-    #second string
-    print("second parameter " + string2)
-    message_init = twilio_api.messages.create(to=credentials.my_phone_number, from_=credentials.my_twilio_number, body="Test")
+    number_text = "Your Number: " + name
+    query_text = "Your Query: " + query
+    message_init = twilio_api.messages.create(to=credentials.my_phone_number, from_=credentials.my_twilio_number, body=number_text)
+    message_init = twilio_api.messages.create(to=credentials.my_phone_number, from_=credentials.my_twilio_number, body=query_text)
 
 def FindJobs(user_number):
     # query_param = userInfo['users'][user_number]['query']
@@ -56,18 +58,23 @@ def FindJobs(user_number):
 
 scheduler = BackgroundScheduler()
 scheduler.start()
-scheduler.add_job(func=print_date_time, trigger=IntervalTrigger(seconds=180), args=['string1','string2'], id='printing_job', name='Print date and time every five seconds', replace_existing=True)
+scheduler.add_job(func=print_date_time, trigger=IntervalTrigger(seconds=15), args=['string1','string2'], id='printing_job', name='Print date and time every five seconds', replace_existing=True)
 atexit.register(lambda: scheduler.shutdown())
 
 @app.route("/", methods=['GET', 'POST'])
 def DeliverJobs():
+    global name
+    global query
     if request.method == 'GET':
         #return the website with the signup form
         return app.send_static_file('home.html')
     elif request.method == 'POST':
+        name = request.form['phone_number']
+        query = request.form['search_query']
+
         #get form data from request object and place into a dict
         #attach to the json file http://stackoverflow.com/questions/23111625/how-to-add-a-key-value-to-json-data-retrieved-from-a-file-with-python
-        return ""
+        return app.send_static_file('thankyou.html')
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)

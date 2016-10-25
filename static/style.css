@@ -23,6 +23,16 @@ input{
   margin:7px;
 }
 
+input[type=submit] {
+    padding:5px 15px;
+    background:#ccc;
+    border:0 none;
+    cursor:pointer;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+
+}
+
 #masthead{
   background-color: #232F3D;
   color: #E0E0E0;
