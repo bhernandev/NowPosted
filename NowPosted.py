@@ -27,6 +27,7 @@ indeed_api = IndeedClient(publisher = credentials.my_indeed_publisher_id)
 
 name = ""
 query = ""
+location = ""
 
 def FindAndDeliverJobs():
     with open('user_info.json', "r") as load_file:
@@ -35,7 +36,7 @@ def FindAndDeliverJobs():
     for user in user_list:
         params = {
             'q': user['search_query'], #query_param
-            'l': "",
+            'l': user['query_location'],
             'userip': credentials.my_ip_address, #this might be a little tough to circumvent, maybe pull data from the form when signing up for NowPosted?
             'useragent': credentials.my_user_agent, #use my own computers credentials?
             'fromage': 1
@@ -45,12 +46,7 @@ def FindAndDeliverJobs():
             job_delivery = job['jobtitle'] + " at " + job['company']
             twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
             print("(" + job_delivery + ") sent to: " + user['phone_number'])
-    #old_jobs = userInfo['users'][user_number]['old_jobs']
-    #loop that checks if any of the 50 new results for indeed exist in the old jobs array. if they do, remove from the json response
-    #new_results = newest results from indeed search
-    #return new_results
 
-#this block of code sets up for doing a function every x seconds
 scheduler = BackgroundScheduler()
 scheduler.start()
 scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=30), id='printing_job', name='Print date and time every five seconds', replace_existing=True)
@@ -60,16 +56,19 @@ atexit.register(lambda: scheduler.shutdown())
 def DefaultRequestHandler():
     global name
     global query
+    global location
+
     if request.method == 'GET':
         return app.send_static_file('home.html')
     elif request.method == 'POST':
         name = request.form['phone_number']
         query = request.form['search_query']
+        location = request.form['query_location']
 
         with open('user_info.json', "r") as load_file:
             user_list = json.load(load_file)
 
-        user_list.append({'phone_number': name, 'search_query': query})
+        user_list.append({'phone_number': name, 'search_query': query, 'query_location': location})
 
         with open('user_info.json', "w") as write_file:
             json.dump(user_list, write_file)
