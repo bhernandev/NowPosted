@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <title>Thank you!</title>
+    <style>@import url('https://fonts.googleapis.com/css?family=Roboto');</style>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <style>.description-text{
+      background-color: #232F3D;
+      color: #E0E0E0;
+      border-radius: 10px;
+      padding:1.5% 5% 1.5% 5%;
+      display: inline-block;
+      text-align:center;
+      height:30%;
+      margin: 0 auto;
+      width: 65%;
+    }</style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="masthead">
+        <h1><span style="color:#E5564B">Thank You</span><span style="color:#2E6EB2"> Very Much</span></h1>
+      </div>
+      <div class="description-text">
+        <h2>You are <span style="color:#E5564B"> now</span><span style="color:#2E6EB2"> posted</span>! You should be receiving a confirmation text message shortly.</h2>
+      </div>
+    </div>
+    <p id="footer">Code and contact info can be found on <a href="https://github.com/bhernandez-cs/NowPosted">GitHub</a><p>
+  </body>
+</html>
