@@ -50,6 +50,7 @@ def FindAndDeliverJobs():
 scheduler = BackgroundScheduler()
 scheduler.start()
 scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=30), id='printing_job', name='Print date and time every five seconds', replace_existing=True)
+#86400
 atexit.register(lambda: scheduler.shutdown())
 
 @app.route("/", methods=['GET', 'POST'])

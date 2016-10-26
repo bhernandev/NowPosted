@@ -10,9 +10,24 @@
       text-align:center;
     }
 
+    a, a:visited{
+       color: #2843FF;
+       cursor: pointer;
+    }
+
+    a:hover{
+      color: #FE5F00;
+    }
+
     h1{
       font-family: 'Roboto',sans-serif;
       font-size: 60px;
+      margin:0px;
+    }
+
+    h2{
+      font-family: 'Roboto',sans-serif;
+      font-size: 28px;
       margin:0px;
     }
 
@@ -20,6 +35,7 @@
       font-family: 'Roboto', sans-serif;;
       font-size: 20px;
       color: #E0E0E0;
+      margin-top: 4px;
     }
 
     input{
@@ -50,6 +66,18 @@
       margin-bottom:2%;
     }
 
+    #footer{
+      color: #E0E0E0;
+      background-color: #232F3D;
+      border-radius: 4px;
+      padding:3px;
+      text-align:right;
+      font-size:14px;
+      position:fixed;
+      bottom:-10px;
+      right:15px;
+    }
+
     .description-text{
       background-color: #232F3D;
       color: #E0E0E0;
@@ -57,7 +85,7 @@
       padding:1.5% 5% 1.5% 5%;
       display: inline-block;
       text-align:center;
-      height:60%;
+      height:67%;
       margin: 0 auto;
       width: 65%;
     }</style>
@@ -67,8 +95,10 @@
       <div id="masthead">
         <h1><span style="color:#E5564B">Now</span><span style="color:#2E6EB2">Posted</span> for me</h1>
       </div>
-      <div class="description-text">
-        <p style="text-align:left">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+      <div class="description-text" style="position:relative">
+        <h2 style="text-align:left">Greetings,</h2>
+        <p style="text-align:left">For the uninformed, this is a text messaging service that sends out daily text messages of new job postings, via <a href="http://www.indeed.com/">indeed</a>, for a desired position. Simply fill out and submit this small form, and we'll keep you <span style="color:#2E6EB2">posted</span> <span style="color:#E5564B">now</span> and in the future. Fill out this form multiple times with different positions if you're on the lookout for various jobs!</p>
+        &nbsp;
           <form action="/" method="POST">
             Phone Number:<input type="text" name="phone_number">
             <br>
@@ -80,5 +110,6 @@
           </form>
       </div>
     </div>
+    <p id="footer">Code and contact info can be found on <a href="https://github.com/bhernandez-cs/NowPosted">GitHub</a><p>
   </body>
 </html>
