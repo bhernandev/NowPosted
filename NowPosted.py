@@ -35,7 +35,8 @@ def FindAndDeliverJobs():
             'l': user['query_location'],
             'userip': user['user_ip'], #this might be a little tough to circumvent, maybe pull data from the form when signing up for NowPosted?
             'useragent': user['user_agent'], #use my own computers credentials?
-            'fromage': 1
+            'fromage': 1,
+            'limit': 25
         }
         indeed_response = indeed_api.search(**params)
         for job in indeed_response['results']:
