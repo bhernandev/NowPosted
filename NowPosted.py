@@ -39,14 +39,22 @@ def FindAndDeliverJobs():
             'limit': 25
         }
         indeed_response = indeed_api.search(**params)
+        job_delivery = "Here are today's postings:\n"
+        full_job_delivery = ""
         for job in indeed_response['results']:
-            job_delivery = job['jobtitle'] + " at " + job['company']
-            twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
-            print("(" + job_delivery + ") sent to: " + user['phone_number'])
+            if(len(job_delivery) + len(job['jobtitle'] + " at " + job['company'] + ": \n" + job['url'] + "\n\n") < 1600):
+                job_delivery += job['jobtitle'] + " at " + job['company'] + ": \n" + job['url'] + "\n\n"
+            else:
+                twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
+                full_job_delivery += job_delivery
+                job_delivery = job['jobtitle'] + " at " + job['company'] + ": \n" + job['url'] + "\n\n"
+        full_job_delivery += job_delivery
+        twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
+        print("{\n" + full_job_delivery + "\n} " + " sent to: " + user['phone_number'])
 
 scheduler = BackgroundScheduler()
 scheduler.start()
-scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=30), id='printing_job', name='Print date and time every five seconds', replace_existing=True)
+scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=30), id='printing_job', name='Finds and delivers jobs to all users', replace_existing=True)
 #86400
 atexit.register(lambda: scheduler.shutdown())
 
@@ -54,22 +62,23 @@ atexit.register(lambda: scheduler.shutdown())
 def DefaultRequestHandler(name=None):
 
     if request.method == 'GET':
-        # return app.send_static_file('home.html')
         return render_template('home.html', name=name)
     elif request.method == 'POST':
         user_ip = request.environ['REMOTE_ADDR']
         user_agent = request.headers['User-Agent']
-        name = request.form['phone_number']
+        phone_number = request.form['phone_number']
         query = request.form['search_query']
         location = request.form['query_location']
 
         with open('user_info.json', "r") as load_file:
             user_list = json.load(load_file)
 
-        user_list.append({'user_ip': user_ip, 'user_agent': user_agent, 'phone_number': name, 'search_query': query, 'query_location': location})
+        user_list.append({'user_ip': user_ip, 'user_agent': user_agent, 'phone_number': phone_number, 'search_query': query, 'query_location': location})
 
         with open('user_info.json', "w") as write_file:
             json.dump(user_list, write_file)
+
+        twilio_api.messages.create(to=phone_number, from_=credentials.my_twilio_number, body="You've signed up for NowPosted! You should receive job postings for your search tomorrow morning. To unsubscribe from this service, text back the word 'unsubscribe'.")
 
         return render_template('thankyou.html',name=name)
 
