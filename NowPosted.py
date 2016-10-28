@@ -30,6 +30,7 @@ def FindAndDeliverJobs():
         user_list = json.load(load_file)
 
     for user in user_list:
+        #add to for loop, if user['confirmed']==1
         params = {
             'q': user['search_query'], #query_param
             'l': user['query_location'],
@@ -54,7 +55,7 @@ def FindAndDeliverJobs():
 
 scheduler = BackgroundScheduler()
 scheduler.start()
-scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=30), id='printing_job', name='Finds and delivers jobs to all users', replace_existing=True)
+scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=86400), id='printing_job', name='Finds and delivers jobs to all users', replace_existing=True)
 #86400
 atexit.register(lambda: scheduler.shutdown())
 
@@ -74,13 +75,47 @@ def DefaultRequestHandler(name=None):
             user_list = json.load(load_file)
 
         user_list.append({'user_ip': user_ip, 'user_agent': user_agent, 'phone_number': phone_number, 'search_query': query, 'query_location': location})
+        #add 'confirmed': 0
 
         with open('user_info.json', "w") as write_file:
             json.dump(user_list, write_file)
 
-        twilio_api.messages.create(to=phone_number, from_=credentials.my_twilio_number, body="You've signed up for NowPosted! You should receive job postings for your search tomorrow morning. To unsubscribe from this service, text back the word 'unsubscribe'.")
+        twilio_api.messages.create(to=phone_number, from_=credentials.my_twilio_number, body="You've signed up for NowPosted! You should receive job postings for your search tomorrow morning. To remove yourself from this service, text back the word 'remove'.")
 
         return render_template('thankyou.html',name=name)
+
+@app.route("/remove", methods=['GET', 'POST'])
+def UnsubscribeRequestHandler(name=None):
+    #change to MessageRequestHandler
+    unsub_number = request.values.get('From')
+    #change unsub_number name because its now misleading, try message_number
+    if "remove" in request.values.get('Body').lower():
+        #search through for all instances of sub number, then delete them,
+        with open('user_info.json', "r") as load_file:
+            user_list = json.load(load_file)
+
+        user_list = [user for user in user_list if user['phone_number'] not in unsub_number]
+
+        with open('user_info.json', "w") as write_file:
+            json.dump(user_list, write_file)
+
+        twilio_api.messages.create(to=unsub_number, from_=credentials.my_twilio_number, body="You have successfully unsubscribed from NowPosted. You will not receive any more postings.")
+
+    #elif "confirm" in request.values.get('Body').lower():
+        # with open('user_info.json', "r") as load_file:
+        #     user_list = json.load(load_file)
+        #
+        # for user in user_list if user['phone_number'] in unsub_number:
+        #     user['confirmed'] = 1
+        #
+        # with open('user_info.json', "w") as write_file:
+        #     json.dump(user_list, write_file)
+
+    else:
+        twilio_api.messages.create(to=unsub_number, from_=credentials.my_twilio_number, body="To remove yourself from this service, text back the word 'remove'.")
+
+    return ""
+
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)
