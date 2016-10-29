@@ -31,31 +31,40 @@ def FindAndDeliverJobs():
 
     for user in user_list:
         #add to for loop, if user['confirmed']==1
-        params = {
-            'q': user['search_query'], #query_param
-            'l': user['query_location'],
-            'userip': user['user_ip'], #this might be a little tough to circumvent, maybe pull data from the form when signing up for NowPosted?
-            'useragent': user['user_agent'], #use my own computers credentials?
-            'fromage': 1,
-            'limit': 25
-        }
-        indeed_response = indeed_api.search(**params)
-        job_delivery = "Here are today's postings:\n"
-        full_job_delivery = ""
-        for job in indeed_response['results']:
-            if(len(job_delivery) + len(job['jobtitle'] + " at " + job['company'] + ": \n" + job['url'] + "\n\n") < 1600):
-                job_delivery += job['jobtitle'] + " at " + job['company'] + ": \n" + job['url'] + "\n\n"
-            else:
-                twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
-                full_job_delivery += job_delivery
-                job_delivery = job['jobtitle'] + " at " + job['company'] + ": \n" + job['url'] + "\n\n"
-        full_job_delivery += job_delivery
-        twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
-        print("{\n" + full_job_delivery + "\n} " + " sent to: " + user['phone_number'])
+        if user['confirmed'] == 1:
+            params = {
+                'q': user['search_query'], #query_param
+                'l': user['query_location'],
+                'userip': user['user_ip'], #this might be a little tough to circumvent, maybe pull data from the form when signing up for NowPosted?
+                'useragent': user['user_agent'], #use my own computers credentials?
+                'fromage': 1,
+                'limit': 25
+            }
+            indeed_response = indeed_api.search(**params)
+            job_delivery = "Here are today's postings:\n"
+            full_job_delivery = ""
+            for job in indeed_response['results']:
+                if(len(job_delivery) + len(job['jobtitle'] + " at " + job['company'] + ": \n" + job['url'] + "\n\n") < 1600):
+                    job_delivery += job['jobtitle'] + " at " + job['company'] + ": \n" + job['url'] + "\n\n"
+                else:
+                    twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
+                    full_job_delivery += job_delivery
+                    job_delivery = job['jobtitle'] + " at " + job['company'] + ": \n" + job['url'] + "\n\n"
+            full_job_delivery += job_delivery
+            twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
+
+            print("{\n" + full_job_delivery + "\n} " + " sent to: " + user['phone_number'])
+
+        else:
+            user_list = [kept_user for kept_user in user_list if kept_user != user]
+            with open('user_info.json', "w") as write_file:
+                json.dump(user_list, write_file)
+            print(user['phone_number'] + " has been removed from the userbase")
+
 
 scheduler = BackgroundScheduler()
 scheduler.start()
-scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=86400), id='printing_job', name='Finds and delivers jobs to all users', replace_existing=True)
+scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=60), id='printing_job', name='Finds and delivers jobs to all users', replace_existing=True)
 #86400
 atexit.register(lambda: scheduler.shutdown())
 
@@ -74,45 +83,51 @@ def DefaultRequestHandler(name=None):
         with open('user_info.json', "r") as load_file:
             user_list = json.load(load_file)
 
-        user_list.append({'user_ip': user_ip, 'user_agent': user_agent, 'phone_number': phone_number, 'search_query': query, 'query_location': location})
-        #add 'confirmed': 0
+        user_list.append({'user_ip': user_ip, 'user_agent': user_agent, 'phone_number': phone_number, 'search_query': query, 'query_location': location, 'confirmed': 0})
 
         with open('user_info.json', "w") as write_file:
             json.dump(user_list, write_file)
 
-        twilio_api.messages.create(to=phone_number, from_=credentials.my_twilio_number, body="You've signed up for NowPosted! You should receive job postings for your search tomorrow morning. To remove yourself from this service, text back the word 'remove'.")
+        twilio_api.messages.create(to=phone_number, from_=credentials.my_twilio_number, body="You've registered for NowPosted! To confirm your number, text back the word 'confirm'.")
 
         return render_template('thankyou.html',name=name)
 
-@app.route("/remove", methods=['GET', 'POST'])
-def UnsubscribeRequestHandler(name=None):
-    #change to MessageRequestHandler
-    unsub_number = request.values.get('From')
-    #change unsub_number name because its now misleading, try message_number
+@app.route("/message", methods=['GET', 'POST'])
+def MessageRequestHandler(name=None):
+    now_confirmed = False
+    message_number = request.values.get('From')
+
     if "remove" in request.values.get('Body').lower():
-        #search through for all instances of sub number, then delete them,
         with open('user_info.json', "r") as load_file:
             user_list = json.load(load_file)
 
-        user_list = [user for user in user_list if user['phone_number'] not in unsub_number]
+        user_list = [user for user in user_list if user['phone_number'] not in message_number]
 
         with open('user_info.json', "w") as write_file:
             json.dump(user_list, write_file)
 
-        twilio_api.messages.create(to=unsub_number, from_=credentials.my_twilio_number, body="You have successfully unsubscribed from NowPosted. You will not receive any more postings.")
+        twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="You have successfully unsubscribed from NowPosted. You will not receive any more postings.")
 
-    #elif "confirm" in request.values.get('Body').lower():
-        # with open('user_info.json', "r") as load_file:
-        #     user_list = json.load(load_file)
-        #
-        # for user in user_list if user['phone_number'] in unsub_number:
-        #     user['confirmed'] = 1
-        #
-        # with open('user_info.json', "w") as write_file:
-        #     json.dump(user_list, write_file)
+    elif "confirm" in request.values.get('Body').lower():
+        with open('user_info.json', "r") as load_file:
+            user_list = json.load(load_file)
+
+        for user in user_list:
+            if user['phone_number'] in message_number:
+                user['confirmed'] = 1
+                now_confirmed = True
+
+        if now_confirmed:
+            with open('user_info.json', "w") as write_file:
+                json.dump(user_list, write_file)
+            twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="You have successfully been comfirmed. You will now receive postings every morning!")
+
+        else:
+            twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="It seems you haven't registered with NowPosted, please visit https://nowpostedfor.me to register.")
 
     else:
-        twilio_api.messages.create(to=unsub_number, from_=credentials.my_twilio_number, body="To remove yourself from this service, text back the word 'remove'.")
+
+        twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="To confirm yourself with this service, text back the word 'confirm'. To remove yourself from this service, text back the word 'remove'.")
 
     return ""
 
