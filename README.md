@@ -23,7 +23,7 @@ auth_token = "YOUR TWILIO AUTH TOKEN"
 my_twilio_number = "YOUR TWILIO PHONE NUMBER"
 
 #You can find/get Indeed credentials at http://www.indeed.com/publisher
-my_indeed_publisher_id = "Your INDEED PUBLISHER ID"
+my_indeed_publisher_id = "YOUR INDEED PUBLISHER ID"
 ```
 
 ## Usage
