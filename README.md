@@ -29,7 +29,7 @@ my_indeed_publisher_id = "Your INDEED PUBLISHER ID"
 ## Usage
 Start the Flask NowPosted server with the following command inside of the project folder in terminal.
 ```Shell
-python WantON.py
+python NowPosted.py
 ```
 The server will serve up all of the static HTML and CSS files by default. However, you'll need to let Twilio find your server to send and respond to messages appropriately. You can use any of the following services, I recommend ngrok!
 <ul>
