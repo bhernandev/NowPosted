@@ -64,7 +64,7 @@ def FindAndDeliverJobs():
 
 scheduler = BackgroundScheduler()
 scheduler.start()
-scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=60), id='printing_job', name='Finds and delivers jobs to all users', replace_existing=True)
+scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=86400), id='printing_job', name='Finds and delivers jobs to all users', replace_existing=True)
 #86400
 atexit.register(lambda: scheduler.shutdown())
 
@@ -129,7 +129,7 @@ def MessageRequestHandler(name=None):
 
         twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="To confirm yourself with this service, text back the word 'confirm'. To remove yourself from this service, text back the word 'remove'.")
 
-    return ""
+    return "OK"
 
 
 if __name__ == "__main__":
