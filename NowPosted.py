@@ -129,7 +129,7 @@ def MessageRequestHandler(name=None):
 
         twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="To confirm yourself with this service, text back the word 'confirm'. To remove yourself from this service, text back the word 'remove'.")
 
-    return "OK"
+    return ""
 
 
 if __name__ == "__main__":
