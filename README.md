@@ -48,5 +48,5 @@ Save these settings, visit the endpoint for your server on any browser to sign u
 
 ## Drawbacks
  <ul>
- <li>Links are rather long which is not inherently a problem until you have to pay Twilio for eachc message of up to 1600 characters :(</li>
+ <li>Links are rather long which is not inherently a problem until you have to pay Twilio for each message of up to 1600 characters :(</li>
 </ul>
