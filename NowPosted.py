@@ -5,6 +5,7 @@ from flask import Flask, request, session, render_template
 from twilio.rest import TwilioRestClient #Twilio
 import twilio.twiml #Twilio
 from indeed import IndeedClient #Indeed
+from pyshorteners import Shortener #TinyURL shortening
 
 #Importing the credentials for the various APIs and libs used
 import credentials
@@ -24,6 +25,7 @@ app.config.from_object(__name__)
 #Creating the clients to interact with the APIs
 twilio_api = TwilioRestClient(credentials.my_twilio_account_sid, credentials.my_twilio_auth_token)
 indeed_api = IndeedClient(publisher = credentials.my_indeed_publisher_id)
+shortener = Shortener('Tinyurl', timeout=2147483647)
 
 def FindAndDeliverJobs():
     with open('user_info.json', "r") as load_file:
@@ -44,12 +46,12 @@ def FindAndDeliverJobs():
             job_delivery = "Here are today's postings:\n"
             full_job_delivery = ""
             for job in indeed_response['results']:
-                if(len(job_delivery) + len(job['jobtitle'] + " at " + job['company'] + ": \n" + job['url'] + "\n\n") < 1600):
-                    job_delivery += job['jobtitle'] + " at " + job['company'] + ": \n" + job['url'] + "\n\n"
+                if(len(job_delivery) + len(job['jobtitle'] + " at " + job['company'] + ": \n" + shortener.short(job['url']) + "\n\n") < 1600):
+                    job_delivery += job['jobtitle'] + " at " + job['company'] + ": \n" + shortener.short(job['url']) + "\n\n"
                 else:
                     twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
                     full_job_delivery += job_delivery
-                    job_delivery = job['jobtitle'] + " at " + job['company'] + ": \n" + job['url'] + "\n\n"
+                    job_delivery = job['jobtitle'] + " at " + job['company'] + ": \n" + shortener.short(job['url']) + "\n\n"
             full_job_delivery += job_delivery
             twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
 
@@ -64,7 +66,7 @@ def FindAndDeliverJobs():
 
 scheduler = BackgroundScheduler()
 scheduler.start()
-scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=86400), id='printing_job', name='Finds and delivers jobs to all users', replace_existing=True)
+scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=30), id='printing_job', name='Finds and delivers jobs to all users', replace_existing=True)
 #86400
 atexit.register(lambda: scheduler.shutdown())
 
