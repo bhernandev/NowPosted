@@ -43,7 +43,7 @@ def FindAndDeliverJobs():
                 'limit': 25
             }
             indeed_response = indeed_api.search(**params)
-            job_delivery = "Here are today's postings:\n"
+            job_delivery = "Here are today's postings for " + user['search_query'] +  ":\n"
             full_job_delivery = ""
             for job in indeed_response['results']:
                 if(len(job_delivery) + len(job['jobtitle'] + " at " + job['company'] + ": \n" + shortener.short(job['url']) + "\n\n") < 1600):
