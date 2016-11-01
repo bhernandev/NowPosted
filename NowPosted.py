@@ -25,7 +25,7 @@ app.config.from_object(__name__)
 #Creating the clients to interact with the APIs
 twilio_api = TwilioRestClient(credentials.my_twilio_account_sid, credentials.my_twilio_auth_token)
 indeed_api = IndeedClient(publisher = credentials.my_indeed_publisher_id)
-shortener = Shortener('Tinyurl', timeout=2147483647)
+shortener = Shortener('Tinyurl', timeout=86400)
 
 def FindAndDeliverJobs():
     with open('user_info.json', "r") as load_file:
@@ -66,7 +66,7 @@ def FindAndDeliverJobs():
 
 scheduler = BackgroundScheduler()
 scheduler.start()
-scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=30), id='printing_job', name='Finds and delivers jobs to all users', replace_existing=True)
+scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=86400), id='printing_job', name='Finds and delivers jobs to all users', replace_existing=True)
 #86400
 atexit.register(lambda: scheduler.shutdown())
 
