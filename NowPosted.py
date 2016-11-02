@@ -43,7 +43,7 @@ def FindAndDeliverJobs():
                 'limit': 25
             }
             indeed_response = indeed_api.search(**params)
-            job_delivery = "Here are today's postings for " + user['search_query'] +  ":\n"
+            job_delivery = "Here are today's postings for " + user['search_query'] +  ":\n\n"
             full_job_delivery = ""
             for job in indeed_response['results']:
                 if(len(job_delivery) + len(job['jobtitle'] + " at " + job['company'] + ": \n" + shortener.short(job['url']) + "\n\n") < 1600):
@@ -52,9 +52,13 @@ def FindAndDeliverJobs():
                     twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
                     full_job_delivery += job_delivery
                     job_delivery = job['jobtitle'] + " at " + job['company'] + ": \n" + shortener.short(job['url']) + "\n\n"
-            full_job_delivery += job_delivery
-            twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
-
+            if len(job_delivery + "To remove yourself from this service, text back the word 'remove'.") < 1600:
+                job_delivery += "To remove yourself from this service, text back the word 'remove'."
+                twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
+            else:
+                twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
+                twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body="To remove yourself from this service, text back the word 'remove'.")
+            full_job_delivery += job_delivery + "To remove yourself from this service, text back the word 'remove'."
             print("{\n" + full_job_delivery + "\n} " + " sent to: " + user['phone_number'])
 
         else:
@@ -67,7 +71,6 @@ def FindAndDeliverJobs():
 scheduler = BackgroundScheduler()
 scheduler.start()
 scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=86400), id='printing_job', name='Finds and delivers jobs to all users', replace_existing=True)
-#86400
 atexit.register(lambda: scheduler.shutdown())
 
 @app.route("/", methods=['GET', 'POST'])
