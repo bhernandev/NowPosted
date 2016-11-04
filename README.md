@@ -45,8 +45,3 @@ Once you have an <b>online</b> server endpoint, visit the settings for your Twil
 ![Setup_1](http://i.imgur.com/zxZOIzY.png)
 
 Save these settings, visit the endpoint for your server on any browser to sign up, and get you and your friends NowPosted daily!
-
-## Drawbacks
- <ul>
- <li>Links are rather long which is not inherently a problem until you have to pay Twilio for each message of up to 1600 characters :(</li>
-</ul>
