@@ -1,5 +1,6 @@
 #Importing flask variables for a server side application
 from flask import Flask, request, session, render_template
+from flask_mail import Mail, Message
 
 #Importing APIs/Libs
 from twilio.rest import TwilioRestClient #Twilio
@@ -21,6 +22,16 @@ from apscheduler.triggers.interval import IntervalTrigger
 
 app = Flask(__name__, template_folder='templates', static_url_path='/static/')
 app.config.from_object(__name__)
+app.config.update(
+	DEBUG=True,
+	#EMAIL SETTINGS
+	MAIL_SERVER='smtp.gmail.com',
+	MAIL_PORT=465,
+	MAIL_USE_SSL=True,
+	MAIL_USERNAME = credentials.my_email_username,
+	MAIL_PASSWORD = credentials.my_email_password
+	)
+mail=Mail(app)
 
 #Creating the clients to interact with the APIs
 twilio_api = TwilioRestClient(credentials.my_twilio_account_sid, credentials.my_twilio_auth_token)
@@ -129,6 +140,23 @@ def MessageRequestHandler(name=None):
 
         else:
             twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="It seems you haven't registered with NowPosted, please visit https://nowpostedfor.me to register.")
+
+    elif "info" in request.values.get('Body').lower() and credentials.my_phone_number in message_number:
+        with open('user_info.json', "r") as load_file:
+            user_list = json.load(load_file)
+
+        userbase_message = "Here are the current users of NowPosted: \n\n"
+
+        for user in user_list:
+            userbase_message += user['phone_number'] + ": " + user['search_query'] + "\n"
+
+        message_gmail = Message(
+                  'Current Users',
+    	       sender= credentials.my_email_username,
+    	       recipients=
+                   [credentials.my_email_username])
+    	message_gmail.body = userbase_message
+    	mail.send(message_gmail)
 
     else:
 
