@@ -136,7 +136,7 @@ def MessageRequestHandler(name=None):
         if now_confirmed:
             with open('user_info.json', "w") as write_file:
                 json.dump(user_list, write_file)
-            twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="You have successfully been comfirmed. You will now receive postings every morning!")
+            twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="You have successfully been confirmed. You will now receive postings every morning!")
 
         else:
             twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="It seems you haven't registered with NowPosted, please visit https://nowpostedfor.me to register.")
@@ -153,6 +153,11 @@ def MessageRequestHandler(name=None):
         message_gmail = Message('Current Users', sender= credentials.my_email_username, recipients=[credentials.my_email_username])
         message_gmail.body = userbase_message
         mail.send(message_gmail)
+        twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="User info was sent to the email in credentials.py")
+
+    elif "override" in request.values.get('Body').lower() and credentials.my_phone_number in message_number:
+        FindAndDeliverJobs()
+        twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="Daily function has been called and users have had their new jobs sent.")
 
     else:
         twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="To confirm yourself with this service, text back the word 'confirm'. To remove yourself from this service, text back the word 'remove'.")
