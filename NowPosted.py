@@ -150,10 +150,7 @@ def MessageRequestHandler(name=None):
         for user in user_list:
             userbase_message += user['phone_number'] + ": " + user['search_query'] + "\n"
 
-        message_gmail = Message(
-            'Current Users',
-            sender= credentials.my_email_username,
-            recipients=[credentials.my_email_username])
+        message_gmail = Message('Current Users', sender= credentials.my_email_username, recipients=[credentials.my_email_username])
     	message_gmail.body = userbase_message
     	mail.send(message_gmail)
 
