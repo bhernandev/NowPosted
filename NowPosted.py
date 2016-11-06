@@ -57,12 +57,13 @@ def FindAndDeliverJobs():
             job_delivery = "Here are today's postings for " + user['search_query'] +  ":\n\n"
             full_job_delivery = ""
             for job in indeed_response['results']:
-                if(len(job_delivery) + len(job['jobtitle'] + " at " + job['company'] + ": \n" + shortener.short(job['url']) + "\n\n") < 1600):
-                    job_delivery += job['jobtitle'] + " at " + job['company'] + ": \n" + shortener.short(job['url']) + "\n\n"
+                short_link = shortener.short(job['url'])
+                if(len(job_delivery) + len(job['jobtitle'] + " at " + job['company'] + ": \n" + short_link + "\n\n") < 1600):
+                    job_delivery += job['jobtitle'] + " at " + job['company'] + ": \n" + short_link + "\n\n"
                 else:
                     twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
                     full_job_delivery += job_delivery
-                    job_delivery = job['jobtitle'] + " at " + job['company'] + ": \n" + shortener.short(job['url']) + "\n\n"
+                    job_delivery = job['jobtitle'] + " at " + job['company'] + ": \n" + short_link + "\n\n"
             if len(job_delivery + "To remove yourself from this service, text back the word 'remove'.") < 1600:
                 job_delivery += "To remove yourself from this service, text back the word 'remove'."
                 twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
