@@ -151,8 +151,8 @@ def MessageRequestHandler(name=None):
             userbase_message += user['phone_number'] + ": " + user['search_query'] + "\n"
 
         message_gmail = Message('Current Users', sender= credentials.my_email_username, recipients=[credentials.my_email_username])
-    	message_gmail.body = userbase_message
-    	mail.send(message_gmail)
+        message_gmail.body = userbase_message
+        mail.send(message_gmail)
 
     else:
         twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="To confirm yourself with this service, text back the word 'confirm'. To remove yourself from this service, text back the word 'remove'.")
