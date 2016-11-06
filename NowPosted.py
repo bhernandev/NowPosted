@@ -141,7 +141,7 @@ def MessageRequestHandler(name=None):
         else:
             twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="It seems you haven't registered with NowPosted, please visit https://nowpostedfor.me to register.")
 
-    elif "info" in request.values.get('Body').lower() and credentials.my_phone_number in message_number:
+    elif "users" in request.values.get('Body').lower() and credentials.my_phone_number in message_number:
         with open('user_info.json', "r") as load_file:
             user_list = json.load(load_file)
 
