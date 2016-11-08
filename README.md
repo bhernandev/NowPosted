@@ -1,5 +1,5 @@
 # NowPosted
-A Twilio and Indeed based service that regularly sends SMS messages when a given desired position on Indeed opens. Implemented in Python. My instance specifically can be found at http://nowpostedfor.me
+A Twilio and Indeed based service that regularly sends SMS messages when a given desired position on Indeed opens. Implemented in Python. My instance of NowPosted is hosted on a Raspberry Pi using ngrok and can specifically can be found at http://nowpostedfor.me
 
 ![NowPosted_Demo_1](http://i.imgur.com/dgaL2c2l.jpg) 
 ![NowPosted_Demo_2](http://i.imgur.com/pml4Vjml.png)
