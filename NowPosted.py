@@ -20,8 +20,11 @@ import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
+#Application setup.
 app = Flask(__name__, template_folder='templates', static_url_path='/static/')
 app.config.from_object(__name__)
+
+#This is for the mail client, by which we will be able to get user base updates
 app.config.update(
 	DEBUG=True,
 	#EMAIL SETTINGS
@@ -34,10 +37,13 @@ app.config.update(
 mail=Mail(app)
 
 #Creating the clients to interact with the APIs
-twilio_api = TwilioRestClient(credentials.my_twilio_account_sid, credentials.my_twilio_auth_token)
-indeed_api = IndeedClient(publisher = credentials.my_indeed_publisher_id)
+twilio_api = TwilioRestClient(credentials.my_twilio_account_sid, credentials.my_twilio_auth_token) #Twilio
+indeed_api = IndeedClient(publisher = credentials.my_indeed_publisher_id) #Indeed
+
+#Client to shorten links with TinyURL
 shortener = Shortener('Tinyurl', timeout=86400)
 
+#Function to find and deliver jobs for each user in the jQuery file. This function is called daily as well as whenever the "admin" user sends a text to the endpoint with the word 'override'
 def FindAndDeliverJobs():
     with open('user_info.json', "r") as load_file:
         user_list = json.load(load_file)
