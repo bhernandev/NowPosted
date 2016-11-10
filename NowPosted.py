@@ -27,7 +27,7 @@ app.config.from_object(__name__)
 #This is for the mail client, by which we will be able to get user base updates
 app.config.update(
 	DEBUG=True,
-	#EMAIL SETTINGS
+	#Email settings
 	MAIL_SERVER='smtp.gmail.com',
 	MAIL_PORT=465,
 	MAIL_USE_SSL=True,
@@ -45,21 +45,26 @@ shortener = Shortener('Tinyurl', timeout=86400)
 
 #Function to find and deliver jobs for each user in the jQuery file. This function is called daily as well as whenever the "admin" user sends a text to the endpoint with the word 'override'
 def FindAndDeliverJobs():
+	#Opening up the json file with all the users for reading
     with open('user_info.json', "r") as load_file:
         user_list = json.load(load_file)
 
+	#Loop to iterate through every user inside the json file
     for user in user_list:
-        #add to for loop, if user['confirmed']==1
+		#Only look up jobs for the user if they have confirmed their number
         if user['confirmed'] == 1:
+			#Initializing the parameters for the Indeed search using the users preferences
             params = {
-                'q': user['search_query'], #query_param
+                'q': user['search_query'],
                 'l': user['query_location'],
-                'userip': user['user_ip'], #this might be a little tough to circumvent, maybe pull data from the form when signing up for NowPosted?
-                'useragent': user['user_agent'], #use my own computers credentials?
+                'userip': user['user_ip'],
+                'useragent': user['user_agent'],
                 'fromage': 1,
                 'limit': 25
-            }
-            indeed_response = indeed_api.search(**params)
+            } #All of the previous parameters are derived from the initial registration form the user fills out when they sign up
+            indeed_response = indeed_api.search(**params) #Using the Indeed client to search for matching jobs
+
+			#Declaration and initialization of the eventual text message with jobs to send to user
             job_delivery = "Here are today's postings for " + user['search_query'] +  ":\n\n"
             full_job_delivery = ""
             for job in indeed_response['results']:
@@ -79,16 +84,18 @@ def FindAndDeliverJobs():
             full_job_delivery += job_delivery + "To remove yourself from this service, text back the word 'remove'."
             print("{\n" + full_job_delivery + "\n} " + " sent to: " + user['phone_number'])
 
+		#If user has not confirmed their number, their number is removed from the json file.
         else:
             user_list = [kept_user for kept_user in user_list if kept_user != user]
             with open('user_info.json', "w") as write_file:
                 json.dump(user_list, write_file)
             print(user['phone_number'] + " has been removed from the userbase")
 
-
+#These lines of code allow for the daily triggering of the job search/delivery function
 scheduler = BackgroundScheduler()
 scheduler.start()
-scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=86400), id='printing_job', name='Finds and delivers jobs to all users', replace_existing=True)
+#The seconds for the IntervalTrigger is 86400 because that is the amount of seconds in a day.
+scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=86400), id='find_and_deliver_jobs', name='Finds and delivers jobs to all users', replace_existing=True)
 atexit.register(lambda: scheduler.shutdown())
 
 @app.route("/", methods=['GET', 'POST'])
