@@ -81,14 +81,17 @@ def FindAndDeliverJobs():
                     twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
                     full_job_delivery += job_delivery
                     job_delivery = job['jobtitle'] + " at " + job['company'] + ": \n" + short_link + "\n\n"
+			#Final message handling, to send final message
             if len(job_delivery + "To remove yourself from this service, text back the word 'remove'.") < 1600:
                 job_delivery += "To remove yourself from this service, text back the word 'remove'."
                 twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
             else:
                 twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
                 twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body="To remove yourself from this service, text back the word 'remove'.")
+			#Disclaimer to send
             full_job_delivery += job_delivery + "To remove yourself from this service, text back the word 'remove'."
             print("{\n" + full_job_delivery + "\n} " + " sent to: " + user['phone_number'])
+
 		#If user has not confirmed their number, their number is removed from the json file.
         else:
             user_list = [kept_user for kept_user in user_list if kept_user != user]
