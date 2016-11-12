@@ -67,10 +67,16 @@ def FindAndDeliverJobs():
 			#Declaration and initialization of the eventual text message with jobs to send to user
             job_delivery = "Here are today's postings for " + user['search_query'] +  ":\n\n"
             full_job_delivery = ""
+
+			#Loop to iterate through every job in the results for the specific user
             for job in indeed_response['results']:
+				#TinyURL shortening
                 short_link = shortener.short(job['url'])
+				#Continue to concatenate to message if satisfies the <1600 char limit
                 if(len(job_delivery) + len(job['jobtitle'] + " at " + job['company'] + ": \n" + short_link + "\n\n") < 1600):
                     job_delivery += job['jobtitle'] + " at " + job['company'] + ": \n" + short_link + "\n\n"
+
+				#Otherwise send message currently have.
                 else:
                     twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
                     full_job_delivery += job_delivery
