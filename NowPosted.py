@@ -188,6 +188,6 @@ def MessageRequestHandler(name=None):
 
     return ""
 
-
+#use_reloader property set to false so that the Flask server does not execute the scheduled code twice!
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)
