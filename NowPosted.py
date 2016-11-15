@@ -76,7 +76,7 @@ def FindAndDeliverJobs():
                 if(len(job_delivery) + len(job['jobtitle'] + " at " + job['company'] + ": \n" + short_link + "\n\n") < 1600):
                     job_delivery += job['jobtitle'] + " at " + job['company'] + ": \n" + short_link + "\n\n"
 
-				#Otherwise send message currently have.
+				#Otherwise send message currently have
                 else:
                     twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
                     full_job_delivery += job_delivery
@@ -92,7 +92,7 @@ def FindAndDeliverJobs():
             full_job_delivery += job_delivery + "To remove yourself from this service, text back the word 'remove'."
             print("{\n" + full_job_delivery + "\n} " + " sent to: " + user['phone_number'])
 
-		#If user has not confirmed their number, their number is removed from the json file.
+		#If user has not confirmed their number, their number is removed from the json file
         else:
             user_list = [kept_user for kept_user in user_list if kept_user != user]
             with open('user_info.json', "w") as write_file:
@@ -102,13 +102,14 @@ def FindAndDeliverJobs():
 #These lines of code allow for the daily triggering of the job search/delivery function
 scheduler = BackgroundScheduler()
 scheduler.start()
-#The seconds for the IntervalTrigger is 86400 because that is the amount of seconds in a day.
+#The seconds for the IntervalTrigger is 86400 because that is the amount of seconds in a day
 scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=86400), id='find_and_deliver_jobs', name='Finds and delivers jobs to all users', replace_existing=True)
 atexit.register(lambda: scheduler.shutdown())
 
+#Flask route for both GET and POST request for our standard endpoint.
 @app.route("/", methods=['GET', 'POST'])
+#Handler for both GET and POST
 def DefaultRequestHandler(name=None):
-
     if request.method == 'GET':
         return render_template('home.html', name=name)
     elif request.method == 'POST':
@@ -130,6 +131,7 @@ def DefaultRequestHandler(name=None):
 
         return render_template('thankyou.html',name=name)
 
+#Flask route for both GET and POST request for inbound text messages to our Twilio number (The one put into our Twilio account)
 @app.route("/message", methods=['GET', 'POST'])
 def MessageRequestHandler(name=None):
     now_confirmed = False
