@@ -151,14 +151,19 @@ def MessageRequestHandler(name=None):
 
 	#User seeking to remove self from list of users
     if "remove" in request.values.get('Body').lower():
+
+		#Opening up the user json file for reading and saving the current users into a dictionary
         with open('user_info.json', "r") as load_file:
             user_list = json.load(load_file)
 
+		#Saves the array WITHOUT users that match the given phone number
         user_list = [user for user in user_list if user['phone_number'] not in message_number]
 
+		#Opening up the user json file for writing and then writing the dictionary with the new user into it as json
         with open('user_info.json', "w") as write_file:
             json.dump(user_list, write_file)
 
+		#Confirmation message of successful unsubscription
         twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="You have successfully unsubscribed from NowPosted. You will not receive any more postings.")
 
 	#User seeking to confirm self into list of users
