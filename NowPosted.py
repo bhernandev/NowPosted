@@ -106,37 +106,50 @@ scheduler.start()
 scheduler.add_job(func=FindAndDeliverJobs, trigger=IntervalTrigger(seconds=86400), id='find_and_deliver_jobs', name='Finds and delivers jobs to all users', replace_existing=True)
 atexit.register(lambda: scheduler.shutdown())
 
-#Flask route for both GET and POST request for our standard endpoint.
+#Flask route for both GET and POST request for our standard endpoint
 @app.route("/", methods=['GET', 'POST'])
 #Handler for both GET and POST
 def DefaultRequestHandler(name=None):
+	#On a standard GET request, render out the website to the browser
     if request.method == 'GET':
         return render_template('home.html', name=name)
+
+	#On a POST request (from the form on the website) render out the 'Thank You!' page and register the user into the user json file using the form elements
     elif request.method == 'POST':
+
+		#Saving the form values into variables for saving later
         user_ip = request.environ['REMOTE_ADDR']
         user_agent = request.headers['User-Agent']
         phone_number = request.form['phone_number']
         query = request.form['search_query']
         location = request.form['query_location']
 
+		#Opening up the user json file for reading and saving the current users into a dictionary
         with open('user_info.json', "r") as load_file:
             user_list = json.load(load_file)
 
+		#Adding the new user into the dictionary
         user_list.append({'user_ip': user_ip, 'user_agent': user_agent, 'phone_number': phone_number, 'search_query': query, 'query_location': location, 'confirmed': 0})
 
+		#Opening up the user json file for writing and then writing the dictionary with the new user into it as json
         with open('user_info.json', "w") as write_file:
             json.dump(user_list, write_file)
 
+		#Send a text message to the new user asking for confirmation
         twilio_api.messages.create(to=phone_number, from_=credentials.my_twilio_number, body="You've registered for NowPosted! To confirm your number, text back the word 'confirm'.")
 
+		#'Thank You' page rendered for browser
         return render_template('thankyou.html',name=name)
 
 #Flask route for both GET and POST request for inbound text messages to our Twilio number (The one put into our Twilio account)
 @app.route("/message", methods=['GET', 'POST'])
+#Handler for incoming SMS GET and POST and Admin actions
 def MessageRequestHandler(name=None):
-    now_confirmed = False
-    message_number = request.values.get('From')
 
+    now_confirmed = False #Variable used to confirm users
+    message_number = request.values.get('From') #Number of incoming SMS
+
+	#User seeking to remove self from list of users
     if "remove" in request.values.get('Body').lower():
         with open('user_info.json', "r") as load_file:
             user_list = json.load(load_file)
@@ -148,6 +161,7 @@ def MessageRequestHandler(name=None):
 
         twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="You have successfully unsubscribed from NowPosted. You will not receive any more postings.")
 
+	#User seeking to confirm self into list of users
     elif "confirm" in request.values.get('Body').lower():
         with open('user_info.json', "r") as load_file:
             user_list = json.load(load_file)
@@ -165,6 +179,7 @@ def MessageRequestHandler(name=None):
         else:
             twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="It seems you haven't registered with NowPosted, please visit https://nowpostedfor.me to register.")
 
+	#Admin action to get user list
     elif "users" in request.values.get('Body').lower() and credentials.my_phone_number in message_number:
         with open('user_info.json', "r") as load_file:
             user_list = json.load(load_file)
@@ -179,6 +194,7 @@ def MessageRequestHandler(name=None):
         mail.send(message_gmail)
         twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="User info was sent to the email in credentials.py")
 
+	#Admin action to send out messages regardless of state of server
     elif "override" in request.values.get('Body').lower() and credentials.my_phone_number in message_number:
         FindAndDeliverJobs()
         twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="Daily function has been called and users have had their new jobs sent.")
