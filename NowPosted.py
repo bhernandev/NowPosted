@@ -168,36 +168,48 @@ def MessageRequestHandler(name=None):
 
 	#User seeking to confirm self into list of users
     elif "confirm" in request.values.get('Body').lower():
+
+		#Opening up the user json file for reading and saving the current users into a dictionary
         with open('user_info.json', "r") as load_file:
             user_list = json.load(load_file)
 
+		#For every user, set the confirm attribute to 1
         for user in user_list:
             if user['phone_number'] in message_number:
                 user['confirmed'] = 1
                 now_confirmed = True
 
+		#If user was successfully confirmed
         if now_confirmed:
+
+		#Opening up the user json file for writing and then writing the dictionary with the new user into it as json
             with open('user_info.json', "w") as write_file:
                 json.dump(user_list, write_file)
             twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="You have successfully been confirmed. You will now receive postings every morning!")
 
+		#Case where user has not registered yet, inform them of that and give a link
         else:
             twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="It seems you haven't registered with NowPosted, please visit https://nowpostedfor.me to register.")
 
 	#Admin action to get user list
     elif "users" in request.values.get('Body').lower() and credentials.my_phone_number in message_number:
+
+		#Opening up the user json file for reading and saving the current users into a dictionary
         with open('user_info.json', "r") as load_file:
             user_list = json.load(load_file)
 
+		#Email message initialization
         userbase_message = "Here are the current users of NowPosted: \n\n"
 
+		#Storing all users into the message, separated by new lines
         for user in user_list:
             userbase_message += user['phone_number'] + ": " + user['search_query'] + "\n"
 
-        message_gmail = Message('Current Users', sender= credentials.my_email_username, recipients=[credentials.my_email_username])
-        message_gmail.body = userbase_message
-        mail.send(message_gmail)
-        twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="User info was sent to the email in credentials.py")
+		#Generating the email using flask_mail
+        message_gmail = Message('Current Users', sender= credentials.my_email_username, recipients=[credentials.my_email_username]) #Creating the email with the correct credentials
+        message_gmail.body = userbase_message #Storing the message into the body of the email
+        mail.send(message_gmail) #Sending the email
+        twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number, body="User info was sent to the email in credentials.py") #Confirmation via twilio
 
 	#Admin action to send out messages regardless of state of server
     elif "override" in request.values.get('Body').lower() and credentials.my_phone_number in message_number:
