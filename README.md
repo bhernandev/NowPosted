@@ -44,4 +44,6 @@ Once you have an <b>online</b> server endpoint, visit the settings for your Twil
 
 ![Setup_1](http://i.imgur.com/zxZOIzY.png)
 
+Be sure to configure the CNAME of your domain if you are using one!
+
 Save these settings, visit the endpoint for your server on any browser to sign up, and get you and your friends NowPosted daily!
