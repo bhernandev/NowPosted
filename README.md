@@ -5,7 +5,7 @@ A Twilio and Indeed based service that regularly sends SMS messages when a given
 ![NowPosted_Demo_2](http://i.imgur.com/pml4Vjml.png)
 
 ## Setup
-#####\*NowPosted was implemented and tested in Python 3.5 in a Unix terminal. Different versions of Python may not work.\*
+#####\*NowPosted was implemented and tested in Python 3.5 in a Unix terminal. Using a different version of Python or a non Unix Terminal may not work.\*
 <br />
 Clone this repository with the following command in terminal.
 ```Shell
