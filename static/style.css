@@ -28,15 +28,27 @@ h2{
 }
 
 p, form{
-  font-family: 'Roboto', sans-serif;;
+  font-family: 'Roboto', sans-serif;
   font-size: 20px;
   color: #E0E0E0;
   margin-top: 4px;
 }
 
+form {
+  width: 45%;
+  margin: auto;
+}
+
+form div {
+  margin: 2%;
+}
+form span {
+  float: left;
+}
+
 input{
+  float: right;
   padding:3px;
-  margin:7px;
 }
 
 input[type=submit] {
@@ -46,6 +58,7 @@ input[type=submit] {
     cursor:pointer;
     -webkit-border-radius: 5px;
     border-radius: 5px;
+    float: none;
 
 }
 
