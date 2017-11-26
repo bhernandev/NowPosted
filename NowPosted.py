@@ -1,15 +1,18 @@
 #Importing flask variables for a server side application
-from flask import Flask, request, session, render_template
+from flask import Flask, request, session, render_template, flash, url_for, redirect
 from flask_mail import Mail, Message
 
 #Importing APIs/Libs
-from twilio.rest import TwilioRestClient #Twilio
-import twilio.twiml #Twilio
+#from twilio.rest import TwilioRestClient #Twilio
+#import twilio.twiml #Twilio
 from indeed import IndeedClient #Indeed
 from pyshorteners import Shortener #TinyURL shortening
 
 #Importing the credentials for the various APIs and libs used
-import credentials
+from credentials import (my_email_username, my_email_password,
+                         my_twilio_account_sid, my_twilio_auth_token,
+                         my_indeed_publisher_id, secret_key)
+from email_token import generate_confirmation_token, confirm_token
 
 #For json parsing and creation if we need it
 import json
@@ -31,20 +34,20 @@ app.config.update(
 	MAIL_SERVER='smtp.gmail.com',
 	MAIL_PORT=465,
 	MAIL_USE_SSL=True,
-	MAIL_USERNAME = credentials.my_email_username,
-	MAIL_PASSWORD = credentials.my_email_password
+	MAIL_USERNAME = my_email_username,
+	MAIL_PASSWORD = my_email_password
 	)
 mail=Mail(app)
 
 #Creating the clients to interact with the APIs
-twilio_api = TwilioRestClient(credentials.my_twilio_account_sid, credentials.my_twilio_auth_token) #Twilio
-indeed_api = IndeedClient(publisher = credentials.my_indeed_publisher_id) #Indeed
+#twilio_api = TwilioRestClient(my_twilio_account_sid, my_twilio_auth_token) #Twilio
+#indeed_api = IndeedClient(publisher = my_indeed_publisher_id) #Indeed
 
 #Client to shorten links with TinyURL
 shortener = Shortener('Tinyurl', timeout=86400)
 
 def FindAndDeliverJobs():
-    FindAndDeliverPhoneJobs()
+    #FindAndDeliverPhoneJobs()
     FindAndDeliverEmailJobs()
 
 # Phone
@@ -80,21 +83,21 @@ def FindAndDeliverPhoneJobs():
 
 		#Continue to concatenate to message if satisfies the <1600 char limit
                 if(len(job_delivery) + len(job['jobtitle'] + " at " + job['company'] + ": \n" + short_link + "\n\n") < 1600):
-                job_delivery += job['jobtitle'] + " at " + job['company'] + ": \n" + short_link + "\n\n"
+                    job_delivery += job['jobtitle'] + " at " + job['company'] + ": \n" + short_link + "\n\n"
 
 	        #Otherwise send message currently have
                 else:
-                    twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
+                    twilio_api.messages.create(to=user['phone_number'], from_=my_twilio_number, body=job_delivery)
                     full_job_delivery += job_delivery
                     job_delivery = job['jobtitle'] + " at " + job['company'] + ": \n" + short_link + "\n\n"
 
             #Final message handling, to send final message
             if len(job_delivery + "To remove yourself from this service, text back the word 'remove'.") < 1600:
                 job_delivery += "To remove yourself from this service, text back the word 'remove'."
-                twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
+                twilio_api.messages.create(to=user['phone_number'], from_=my_twilio_number, body=job_delivery)
             else:
-                twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
-                twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body="To remove yourself from this service, text back the word 'remove'.")
+                twilio_api.messages.create(to=user['phone_number'], from_=my_twilio_number, body=job_delivery)
+                twilio_api.messages.create(to=user['phone_number'], from_=my_twilio_number, body="To remove yourself from this service, text back the word 'remove'.")
 	    #Disclaimer to send
             full_job_delivery += job_delivery + "To remove yourself from this service, text back the word 'remove'."
             print("{\n" + full_job_delivery + "\n} " + " sent to: " + user['phone_number'])
@@ -142,7 +145,7 @@ def FindAndDeliverEmailsJobs():
 
             # Send email to users
             message_gmail = Message("NowPosted: today's postings!",
-                                    sender= credentials.my_email_username,
+                                    sender= my_email_username,
                                     recipients=[user['email']])
             message_gmail.body = email_delivery
             mail.send(message_gmail)
@@ -189,33 +192,48 @@ def DefaultRequestHandler(name=None):
             user_list = json.load(load_file)
 
 	#Adding the new user into the dictionary
-        user_list.append({'user_ip': user_ip, 'user_agent': user_agent,
-                          'email': email, 'phone_number': phone_number,
-                          'search_query': query, 'query_location': location,
-                          'confirmed': 0})
+        new = not user_list
+        confirmed = 0
+        for user in user_list:
+            if user['phone_number'] == phone_number and user['email'] == email:
+                confirmed = user['confirmed']
+                if user['search_query'] == query and user['query_location'] == location:
+                    new = False
+                else:
+                    new = True
 
-	#Opening up the user json file for writing and then writing the dictionary with the new user into it as json
-        with open('user_info.json', "w") as write_file:
-            json.dump(user_list, write_file)
+        print new
+        if new:
+            user_list.append({'user_ip': user_ip, 'user_agent': user_agent,
+                              'email': email, 'phone_number': phone_number,
+                              'search_query': query, 'query_location': location,
+                              'confirmed': confirmed})
+            #Opening up the user json file for writing and then writing the dictionary with the new user into it as json
+            with open('user_info.json', "w") as write_file:
+                json.dump(user_list, write_file)
 
-        email_confirmation()
-        text_confirmation()
+            if confirmed == 0:
+                email_confirmation(email)
+                #text_confirmation(phone_number)
 
 	#'Thank You' page rendered for browser
         return render_template('thankyou.html',name=name)
 
-def text_confirmation():
+def text_confirmation(number):
     #Send a text message to the new user asking for confirmation
-    twilio_api.messages.create(to=phone_number, from_=credentials.my_twilio_number,
+    twilio_api.messages.create(to=number, from_=my_twilio_number,
                                body="You've registered for NowPosted! To confirm your number, text back the word 'confirm'.")
 
-def email_confirmation():
+def email_confirmation(email):
+    print email
+    token = generate_confirmation_token(email)
+    confirm_url = url_for('confirm_email', token=token, _external=True)
+    html = render_template('email.html', confirm_url=confirm_url)
     # Send email to new user
     message_gmail = Message("You've registered for NowPosted!",
-                            sender= credentials.my_email_username,
-                            recipients=[user['email']])
-    message_gmail.body = ("Thank you for signing up for NowPosted! To confirm your",
-                          " email, please click on the link below:\n\n")
+                            sender= my_email_username,
+                            recipients=[email])
+    message_gmail.html = html
     mail.send(message_gmail)
 
 
@@ -241,7 +259,7 @@ def MessageRequestHandler(name=None):
             json.dump(user_list, write_file)
 
 	#Confirmation message of successful unsubscription
-        twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number,
+        twilio_api.messages.create(to=message_number, from_=my_twilio_number,
                                    body="You have successfully unsubscribed from NowPosted. You will not receive any more postings.")
 
     #User seeking to confirm self into list of users
@@ -262,16 +280,16 @@ def MessageRequestHandler(name=None):
 	    #Opening up the user json file for writing and then writing the dictionary with the new user into it as json
             with open('user_info.json', "w") as write_file:
                 json.dump(user_list, write_file)
-            twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number,
+            twilio_api.messages.create(to=message_number, from_=my_twilio_number,
                                        body="You have successfully been confirmed. You will now receive postings every morning!")
 
 	#Case where user has not registered yet, inform them of that and give a link
         else:
-            twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number,
+            twilio_api.messages.create(to=message_number, from_=my_twilio_number,
                                        body="It seems you haven't registered with NowPosted, please visit https://nowpostedfor.me to register.")
 
     #Admin action to get user list
-    elif "users" in request.values.get('Body').lower() and credentials.my_phone_number in message_number:
+    elif "users" in request.values.get('Body').lower() and my_phone_number in message_number:
 
 	#Opening up the user json file for reading and saving the current users into a dictionary
         with open('user_info.json', "r") as load_file:
@@ -285,24 +303,61 @@ def MessageRequestHandler(name=None):
             userbase_message += user['phone_number'] + ": " + user['search_query'] + "\n"
 
 	#Generating the email using flask_mail
-        message_gmail = Message('Current Users', sender= credentials.my_email_username,
-                                recipients=[credentials.my_email_username]) #Creating the email with the correct credentials
+        message_gmail = Message('Current Users', sender= my_email_username,
+                                recipients=[my_email_username]) #Creating the email with the correct credentials
         message_gmail.body = userbase_message #Storing the message into the body of the email
         mail.send(message_gmail) #Sending the email
-        twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number,
+        twilio_api.messages.create(to=message_number, from_=my_twilio_number,
                                    body="User info was sent to the email in credentials.py") #Confirmation via twilio
 
     #Admin action to send out messages regardless of state of server
-    elif "override" in request.values.get('Body').lower() and credentials.my_phone_number in message_number:
+    elif "override" in request.values.get('Body').lower() and my_phone_number in message_number:
         FindAndDeliverJobs()
-        twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number,
+        twilio_api.messages.create(to=message_number, from_=my_twilio_number,
                                    body="Daily function has been called and users have had their new jobs sent.")
 
     else:
-        twilio_api.messages.create(to=message_number, from_=credentials.my_twilio_number,
+        twilio_api.messages.create(to=message_number, from_=my_twilio_number,
                                    body="To confirm yourself with this service, text back the word 'confirm'. To remove yourself from this service, text back the word 'remove'.")
     return ""
 
+@app.route("/confirm/<token>")
+def confirm_email(token):
+    try:
+        email = confirm_token(token)
+    except:
+        flash('The confirmation link is invalid or has expired.', 'danger')
+    #Opening up the user json file for reading and saving the current users into a dictionary
+    with open('user_info.json', "r") as load_file:
+        user_list = json.load(load_file)
+
+    #For every user, set the confirm attribute to 1
+    for user in user_list:
+        if user['email'] in email:
+            if user['confirmed'] == 1:
+                flash('Email already confirmed!', 'success')
+                now_confirmed = False
+            else:
+                user['confirmed'] = 1
+                now_confirmed = True
+
+    #If user was successfully confirmed
+    if now_confirmed:
+        #Opening up the user json file for writing and then writing the dictionary with the new user into it as json
+        with open('user_info.json', "w") as write_file:
+            json.dump(user_list, write_file)
+
+        # Send email to confirmed user
+        message_gmail = Message("Your email has been confirmed!",
+                                sender= my_email_username,
+                                recipients=[email])
+        message_gmail.body = ("Thank you for confirming your email. You will now receive job postings every morning!")
+        mail.send(message_gmail)
+        flash('Email confirmed! You will now receive daily job postings!', 'success')
+    return redirect(url_for('DefaultRequestHandler'))
+
 #use_reloader property set to false so that the Flask server does not execute the scheduled code twice!
 if __name__ == "__main__":
+    app.secret_key = secret_key
+    app.config['SESSION_TYPE'] = 'filesystem'
     app.run(debug=True, use_reloader=False)

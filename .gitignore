@@ -7,3 +7,5 @@ pip-selfcheck.json
 credentials.py
 ToDo.txt
 .DS_Store
+user_info.json
+*.pyc

@@ -17,21 +17,47 @@
     }</style>
   </head>
   <body>
+    {% with messages = get_flashed_messages() %}
+	{% if messages %}
+	  {% for message in messages %}
+          <script>
+            var messages = {{ messages | safe }};
+            for (var i=0; i<messages.length; i++) {
+	      alert(messages[i]);
+	    }
+	  </script>
+	  {% endfor %}
+	{% endif %}
+    {% endwith %}
     <div id="container">
       <div id="masthead">
         <h1><span style="color:#E5564B">Now</span><span style="color:#2E6EB2">Posted</span> for me</h1>
       </div>
       <div class="description-text" style="position:relative">
         <h2 style="text-align:left">Greetings,</h2>
-        <p style="text-align:left">For the uninformed, this is a text messaging service that sends out daily text messages of new job postings, via <a href="http://www.indeed.com/">indeed</a>, for a desired position. Simply fill out and submit this small form, and we'll keep you <span style="color:#2E6EB2">posted</span> <span style="color:#E5564B">now</span> and in the future. Fill out this form multiple times with different positions if you're on the lookout for various jobs!</p>
+        <p style="text-align:left">For the uninformed, this is a text/email messaging service that sends out daily text messages of new job postings, via <a href="http://www.indeed.com/">indeed</a>, for a desired position. Simply fill out and submit this small form, and we'll keep you <span style="color:#2E6EB2">posted</span> <span style="color:#E5564B">now</span> and in the future. Fill out this form multiple times with different positions if you're on the lookout for various jobs!</p>
         &nbsp;
           <form action="/" method="POST">
-            Phone Number:<input type="text" name="phone_number">
+	    <div>
+	    <span>Phone Number:</span>
+	    <input type="tel" name="phone_number">
             <br>
-            Desired Position:<input type="text" name="search_query">
+	    </div>
+	    <div>
+	    <span>Email:</span>
+	    <input type="email" name="email" required>
             <br>
-            Desired Location (ZIP):<input type="text" name="query_location">
+	    </div>
+	    <div>
+	    <span>Desired Position:</span>
+	    <input type="text" name="search_query" required>
             <br>
+	    </div>
+	    <div>
+	    <span>Desired Location (ZIP):</span>
+	    <input type="text" name="query_location" required>
+            <br>
+	    </div>
             <input type="submit">
           </form>
       </div>
