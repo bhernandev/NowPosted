@@ -3,8 +3,8 @@ from flask import Flask, request, session, render_template, flash, url_for, redi
 from flask_mail import Mail, Message
 
 #Importing APIs/Libs
-#from twilio.rest import TwilioRestClient #Twilio
-#import twilio.twiml #Twilio
+from twilio.rest import TwilioRestClient #Twilio
+import twilio.twiml #Twilio
 from indeed import IndeedClient #Indeed
 from pyshorteners import Shortener #TinyURL shortening
 
@@ -40,14 +40,14 @@ app.config.update(
 mail=Mail(app)
 
 #Creating the clients to interact with the APIs
-#twilio_api = TwilioRestClient(my_twilio_account_sid, my_twilio_auth_token) #Twilio
-#indeed_api = IndeedClient(publisher = my_indeed_publisher_id) #Indeed
+twilio_api = TwilioRestClient(my_twilio_account_sid, my_twilio_auth_token) #Twilio
+indeed_api = IndeedClient(publisher = my_indeed_publisher_id) #Indeed
 
 #Client to shorten links with TinyURL
 shortener = Shortener('Tinyurl', timeout=86400)
 
 def FindAndDeliverJobs():
-    #FindAndDeliverPhoneJobs()
+    FindAndDeliverPhoneJobs()
     FindAndDeliverEmailJobs()
 
 # Phone
@@ -214,7 +214,7 @@ def DefaultRequestHandler(name=None):
 
             if confirmed == 0:
                 email_confirmation(email)
-                #text_confirmation(phone_number)
+                text_confirmation(phone_number)
 
 	#'Thank You' page rendered for browser
         return render_template('thankyou.html',name=name)
