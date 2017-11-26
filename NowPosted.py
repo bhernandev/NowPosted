@@ -3,8 +3,8 @@ from flask import Flask, request, session, render_template
 from flask_mail import Mail, Message
 
 #Importing APIs/Libs
-#from twilio.rest import TwilioRestClient #Twilio
-#import twilio.twiml #Twilio
+from twilio.rest import TwilioRestClient #Twilio
+import twilio.twiml #Twilio
 from indeed import IndeedClient #Indeed
 from pyshorteners import Shortener #TinyURL shortening
 
@@ -37,8 +37,8 @@ app.config.update(
 mail=Mail(app)
 
 #Creating the clients to interact with the APIs
-#twilio_api = TwilioRestClient(credentials.my_twilio_account_sid, credentials.my_twilio_auth_token) #Twilio
-#indeed_api = IndeedClient(publisher = credentials.my_indeed_publisher_id) #Indeed
+twilio_api = TwilioRestClient(credentials.my_twilio_account_sid, credentials.my_twilio_auth_token) #Twilio
+indeed_api = IndeedClient(publisher = credentials.my_indeed_publisher_id) #Indeed
 
 #Client to shorten links with TinyURL
 shortener = Shortener('Tinyurl', timeout=86400)
@@ -87,7 +87,7 @@ def FindAndDeliverPhoneJobs():
                     twilio_api.messages.create(to=user['phone_number'], from_=credentials.my_twilio_number, body=job_delivery)
                     full_job_delivery += job_delivery
                     job_delivery = job['jobtitle'] + " at " + job['company'] + ": \n" + short_link + "\n\n"
-            :w
+
             #Final message handling, to send final message
             if len(job_delivery + "To remove yourself from this service, text back the word 'remove'.") < 1600:
                 job_delivery += "To remove yourself from this service, text back the word 'remove'."
